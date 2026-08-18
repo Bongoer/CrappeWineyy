@@ -45,6 +45,13 @@ jobs:
         working-directory: boxedwine64/project/emscripten
         run: make wasm64-mt
 
+      - name: Verify native mobile input bridge
+        run: |
+          set -euo pipefail
+          runtime="boxedwine64/project/emscripten/Build/Wasm64Mt"
+          grep -a -q "bw64_mobile_mouse_move" "$runtime/boxedwine64.js" "$runtime/boxedwine64.wasm"
+          grep -a -q "bw64_mobile_mouse_button" "$runtime/boxedwine64.js" "$runtime/boxedwine64.wasm"
+
       - name: Download the Wine64 filesystem
         env:
           GH_TOKEN: ${{ github.token }}
@@ -115,6 +122,18 @@ jobs:
           cp winebox-site/runtime-overrides/winebox-cursor.svg "$site/runtime/"
           python3 winebox-site/runtime-overrides/patch-runtime.py "$site/runtime"
           touch "$site/.nojekyll"
+
+      - name: Validate desktop shell and responsive runtime
+        run: |
+          set -euo pipefail
+          node --check _site/app.js
+          node --check _site/runtime/winebox-runtime.js
+          node --check _site/runtime/wine64-launcher.js
+          grep -Fq 'explorer.exe /desktop=WineBox,960x540' _site/runtime/wine64-launcher.js
+          grep -Fq 'spawnInsideDesktop' _site/runtime/wine64-launcher.js
+          grep -Fq 'canvas.width = 960' _site/runtime/wine64-launcher.js
+          grep -Fq 'canvas.height = 540' _site/runtime/wine64-launcher.js
+          grep -Fq 'overflow: hidden !important' _site/runtime/winebox-runtime.css
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

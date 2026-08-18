@@ -24,9 +24,10 @@ The first build compiles the browser engine, so it can take several minutes. Lat
 - Multi-file upload accepts EXE, MSI, PY, DLL, and PYD companion files.
 - Mobile controls include Standard, Gaming, and Compact keyboard layouts, a touch trackpad, visible cursor, mouse buttons, and pointer-speed settings.
 - Mobile pointer movement is sent through a native SDL/XWire bridge instead of moving only a browser overlay.
-- Canvas sizing preserves the emulator's current aspect ratio. Display settings offer Fit, native 100%, and 150% zoom, and fullscreen uses contain sizing without stretching.
+- The runtime always starts a 960x540 Wine Explorer desktop. Apps open as normal windows inside it instead of taking ownership of the browser framebuffer.
+- The runtime page is locked to the browser viewport. Its landscape desktop uses contain sizing in normal and fullscreen modes, so it cannot turn into an oversized portrait page.
 - Wine and Boxedwine provide the browser-facing display, audio, keyboard, mouse, and network compatibility layers. Separate Windows kernel, USB, anti-cheat, and hardware drivers cannot be installed because there is no Windows kernel or direct hardware access.
-- The Desktop button starts Wine Explorer's desktop shell. XFCE is not included because Boxedwine64 is a Wine userspace environment, not a complete Linux virtual machine.
+- Wine Explorer provides the compatible desktop shell. XFCE and Openbox are Linux window managers and cannot run here because Boxedwine64 is a Wine userspace environment, not a complete Linux virtual machine.
 
 ## Why this doesn't use v86
 

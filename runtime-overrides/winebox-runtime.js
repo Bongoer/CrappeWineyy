@@ -2,6 +2,9 @@
   "use strict";
 
   const I = window.WineboxIcons;
+  const DESKTOP_WIDTH = 960;
+  const DESKTOP_HEIGHT = 540;
+  const DESKTOP_PROGRAM = `explorer.exe /desktop=WineBox,${DESKTOP_WIDTH}x${DESKTOP_HEIGHT}`;
   const qs = new URLSearchParams(location.search);
   const storage = {
     get(key, fallback) { try { return localStorage.getItem(key) ?? fallback; } catch (_) { return fallback; } },
@@ -80,7 +83,7 @@
       const desktop = document.createElement("button");
       desktop.type = "button";
       desktop.className = "appbtn";
-      desktop.dataset.prog = "explorer.exe /desktop=WineBox,800x600";
+      desktop.dataset.prog = DESKTOP_PROGRAM;
       desktop.innerHTML = `<span class="ico">${icon("desktop")}</span>Desktop`;
       desktop.onclick = () => launch(desktop.dataset.prog);
       firstRow.insertBefore(desktop, firstRow.children[1] || null);
@@ -174,8 +177,8 @@
 
   function canvasDimensions(canvas) {
     return {
-      width: Math.max(1, Number(canvas?.width) || 800),
-      height: Math.max(1, Number(canvas?.height) || 600)
+      width: Math.max(1, Number(canvas?.width) || DESKTOP_WIDTH),
+      height: Math.max(1, Number(canvas?.height) || DESKTOP_HEIGHT)
     };
   }
 
@@ -217,8 +220,6 @@
 
     function syncCanvasMetrics() {
       const size = canvasDimensions(canvas);
-      border.style.setProperty("--wb-canvas-width", size.width);
-      border.style.setProperty("--wb-canvas-height", size.height);
       state.cursorX = Math.max(0, Math.min(size.width - 1, state.cursorX ?? size.width / 2));
       state.cursorY = Math.max(0, Math.min(size.height - 1, state.cursorY ?? size.height / 2));
       paintCursor();
@@ -286,8 +287,10 @@
     const ui = document.createElement("div");
     ui.id = "winebox-mobile-ui";
     ui.innerHTML = `
+      <div class="wb-mobile-launcher-sheet" id="wb-mobile-launcher-sheet" hidden></div>
       <div class="wb-keyboard-sheet" id="wb-keyboard-sheet" hidden><div class="wb-key-grid" id="wb-key-grid"></div></div>
       <div class="wb-mobile-dock">
+        <button id="wb-mobile-apps" aria-label="Apps and files">${icon("monitor")}</button>
         <button id="wb-mobile-settings" aria-label="Settings">${icon("settings")}</button>
         <button id="wb-mobile-keyboard" aria-label="Keyboard">${icon("keyboard")}</button>
         <button id="wb-mobile-pointer" class="active" aria-label="Trackpad mode">${icon("mouse-pointer")}</button>
@@ -298,12 +301,48 @@
       <input class="wb-native-input" id="wb-native-input" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false">`;
     document.body.appendChild(ui);
     renderKeyboard();
+    const launcherSheet = document.getElementById("wb-mobile-launcher-sheet");
+    const apps = document.getElementById("apps");
+    const toolbar = document.getElementById("toolbar");
+    const appsPlace = document.createComment("winebox apps position");
+    const toolbarPlace = document.createComment("winebox toolbar position");
+    apps?.before(appsPlace);
+    toolbar?.before(toolbarPlace);
+    const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 760px)");
+    function placeMobilePanels() {
+      if (mobileQuery.matches) {
+        if (apps && apps.parentNode !== launcherSheet) launcherSheet.appendChild(apps);
+        if (toolbar && toolbar.parentNode !== launcherSheet) launcherSheet.appendChild(toolbar);
+      } else {
+        if (apps && apps.parentNode === launcherSheet) appsPlace.after(apps);
+        if (toolbar && toolbar.parentNode === launcherSheet) toolbarPlace.after(toolbar);
+        launcherSheet.hidden = true;
+        document.getElementById("wb-mobile-apps")?.classList.remove("active");
+      }
+    }
+    placeMobilePanels();
+    mobileQuery.addEventListener?.("change", placeMobilePanels);
+
     const sheet = document.getElementById("wb-keyboard-sheet");
     const keyboardButton = document.getElementById("wb-mobile-keyboard");
+    const appsButton = document.getElementById("wb-mobile-apps");
+    appsButton.onclick = () => {
+      const opening = launcherSheet.hidden;
+      launcherSheet.hidden = !opening;
+      appsButton.classList.toggle("active", opening);
+      if (opening && state.keyboardOpen) keyboardButton.click();
+    };
+    launcherSheet.addEventListener("click", (event) => {
+      if (event.target.closest(".appbtn")) {
+        launcherSheet.hidden = true;
+        appsButton.classList.remove("active");
+      }
+    });
     keyboardButton.onclick = () => {
       state.keyboardOpen = !state.keyboardOpen;
       sheet.hidden = !state.keyboardOpen;
       keyboardButton.classList.toggle("active", state.keyboardOpen);
+      if (state.keyboardOpen && !launcherSheet.hidden) appsButton.click();
     };
     document.getElementById("wb-mobile-settings").onclick = () => document.getElementById("wb-settings")?.showModal();
     document.getElementById("wb-mobile-pointer").onclick = (event) => {

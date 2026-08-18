@@ -18,6 +18,91 @@ if "winebox-runtime.js" not in html:
 html_path.write_text(html, encoding="utf-8")
 
 launcher = launcher_path.read_text(encoding="utf-8")
+
+def replace_required(source, old, new, label):
+    if new in source:
+        return source
+    if old not in source:
+        raise RuntimeError(f"Could not patch {label}: expected launcher source was not found")
+    return source.replace(old, new, 1)
+
+# Always boot a fixed Explorer desktop first. Without this, the first small app
+# becomes the XWire display owner and resizes the browser framebuffer to its own
+# window, which produces the tall, stretched Notepad/Minesweeper screen.
+launcher = replace_required(
+    launcher,
+    '    var DO_BOOT, NOVIDEO, PROG, USE_PREFIX, SESSION;\n',
+    '''    var DO_BOOT, NOVIDEO, PROG, USE_PREFIX, SESSION;
+    var REQUESTED_PROG = param("p");
+    var DESKTOP_PROG = "explorer.exe /desktop=WineBox,960x540";
+    var USE_DESKTOP_SHELL = param("desktop") !== "0" && param("boot") !== "1" && param("novideo") !== "1";
+    var pendingDesktopProgram = USE_DESKTOP_SHELL && REQUESTED_PROG && REQUESTED_PROG !== DESKTOP_PROG
+        ? REQUESTED_PROG : null;
+''',
+    "desktop session variables",
+)
+launcher = replace_required(
+    launcher,
+    '    applyRunConfig(param("p"), {\n',
+    '    applyRunConfig(USE_DESKTOP_SHELL ? DESKTOP_PROG : REQUESTED_PROG, {\n',
+    "desktop-first boot program",
+)
+launcher = replace_required(
+    launcher,
+    '            canvas.width = 800;\n            canvas.height = 600;\n',
+    '            canvas.width = 960;\n            canvas.height = 540;\n',
+    "landscape canvas size",
+)
+
+desktop_spawn = r'''    var sessionServerPinned = false;
+    function spawnInsideDesktop(prog) {
+        if (!prog || prog === DESKTOP_PROG) return true;
+        if (!sessionReady()) {
+            pendingDesktopProgram = prog;
+            setStatusText("Desktop is still starting. " + prog + " is queued.");
+            return true;
+        }
+        setStatusText("Opening " + prog + " on the Wine desktop...");
+        return spawnArgv(wineProgArgv(prog), "desktop app: " + prog);
+    }
+
+'''
+launcher = replace_required(
+    launcher,
+    '    var sessionServerPinned = false;\n',
+    desktop_spawn,
+    "desktop child launcher",
+)
+launcher = replace_required(
+    launcher,
+    '                    spawnArgv(wineProgArgv("Z:\\\\home\\\\username\\\\deskpin.exe"), "deskpin (hold desktop open)");\n',
+    '''                    spawnArgv(wineProgArgv("Z:\\\\home\\\\username\\\\deskpin.exe"), "deskpin (hold desktop open)");
+                    if (USE_DESKTOP_SHELL && pendingDesktopProgram) {
+                        var queuedProgram = pendingDesktopProgram;
+                        pendingDesktopProgram = null;
+                        setTimeout(function () { spawnInsideDesktop(queuedProgram); }, 350);
+                    }
+''',
+    "queued desktop app start",
+)
+launcher = replace_required(
+    launcher,
+    '        if (window.setActiveApp) try { window.setActiveApp(prog); } catch (e) {}\n        // In-session spawn when we can (default session mode, kernel up, real app).\n',
+    '''        if (window.setActiveApp) try { window.setActiveApp(prog); } catch (e) {}
+        if (USE_DESKTOP_SHELL && SESSION && !(opts && opts.boot) && prog && prog !== "--version") {
+            if (spawnInsideDesktop(prog)) return;
+        }
+        // In-session spawn when we can (default session mode, kernel up, real app).
+''',
+    "desktop-aware app switching",
+)
+launcher = replace_required(
+    launcher,
+    '    if (window.setActiveApp) try { window.setActiveApp(PROG || "--version"); } catch (e) {}\n',
+    '    if (window.setActiveApp) try { window.setActiveApp(REQUESTED_PROG || DESKTOP_PROG); } catch (e) {}\n',
+    "active app marker",
+)
+
 launcher = launcher.replace('liveModule["ENV"]["BW64_GLTRACE"] = (param("gltrace") || "1")',
                             'liveModule["ENV"]["BW64_GLTRACE"] = (param("gltrace") || "0")')
 
