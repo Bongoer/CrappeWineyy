@@ -112,7 +112,7 @@ body > h1 { display: none; }
   justify-content: center !important;
   min-height: 0 !important;
   height: auto !important;
-  overflow: visible !important;
+  overflow: auto !important;
   padding: 12px 0 !important;
 }
 
@@ -121,9 +121,9 @@ div.emscripten_border {
   --boxedwine-canvas-height: 600;
   position: relative;
   flex: 0 0 auto;
-  width: min(100%, 960px) !important;
+  width: min(100%, calc(var(--wb-canvas-width, 800) * 1px)) !important;
   height: auto !important;
-  aspect-ratio: 4 / 3 !important;
+  aspect-ratio: var(--wb-canvas-width, 800) / var(--wb-canvas-height, 600) !important;
   overflow: hidden;
   border: 1px solid var(--wb-line) !important;
   border-radius: 10px;
@@ -134,7 +134,8 @@ div.emscripten_border {
 canvas.emscripten {
   display: block !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
+  aspect-ratio: var(--wb-canvas-width, 800) / var(--wb-canvas-height, 600) !important;
   max-width: none !important;
   border: 0 !important;
   padding: 0 !important;
@@ -142,6 +143,33 @@ canvas.emscripten {
   image-rendering: var(--wb-rendering);
   cursor: url("winebox-cursor.svg") 2 2, default !important;
   touch-action: none;
+}
+
+html[data-wb-display-size="native"] #dropzone,
+html[data-wb-display-size="zoom"] #dropzone { justify-content: flex-start !important; }
+html[data-wb-display-size="native"] div.emscripten_border {
+  width: calc(var(--wb-canvas-width, 800) * 1px) !important;
+}
+html[data-wb-display-size="zoom"] div.emscripten_border {
+  width: calc(var(--wb-canvas-width, 800) * 1.5px) !important;
+}
+
+div.emscripten_border:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  display: grid !important;
+  place-items: center;
+  background: #000;
+}
+div.emscripten_border:fullscreen canvas.emscripten {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  object-fit: contain;
 }
 
 #console { margin-top: 8px !important; }
@@ -180,6 +208,7 @@ body.wb-console-hidden #console, body.wb-console-hidden > .hint { display: none;
 .wb-setting { padding: 15px 0; border-top: 1px solid var(--wb-line); }
 .wb-setting > label:first-child { display: block; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
 .wb-segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.wb-segments-two { grid-template-columns: repeat(2, 1fr); }
 .wb-segments label { cursor: pointer; }
 .wb-segments input { position: absolute; opacity: 0; }
 .wb-segments span { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border: 1px solid var(--wb-line); border-radius: 7px; font-size: 12px; }
@@ -195,51 +224,57 @@ body.wb-console-hidden #console, body.wb-console-hidden > .hint { display: none;
 .wb-mobile-dock {
   position: fixed;
   z-index: 1100;
-  left: 8px;
-  right: 8px;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  left: 50%;
+  right: auto;
+  bottom: max(5px, env(safe-area-inset-bottom));
+  width: min(420px, calc(100vw - 10px));
+  transform: translateX(-50%);
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  padding: 7px;
+  gap: 4px;
+  padding: 4px;
   border: 1px solid var(--wb-line);
   border-radius: 14px;
   background: rgba(15,17,14,.94);
   backdrop-filter: blur(16px);
 }
-.wb-mobile-dock button { min-height: 47px; border: 1px solid var(--wb-line); border-radius: 9px; color: var(--wb-text); background: var(--wb-panel-2); display: grid; place-items: center; touch-action: manipulation; }
-.wb-mobile-dock .wb-icon { width: 21px; height: 21px; }
+.wb-mobile-dock button { min-height: 38px; border: 1px solid var(--wb-line); border-radius: 7px; color: var(--wb-text); background: var(--wb-panel-2); display: grid; place-items: center; touch-action: manipulation; font-size: 11px; }
+.wb-mobile-dock .wb-icon { width: 18px; height: 18px; }
 .wb-mobile-dock button.active { color: #111; background: var(--wb-acid); border-color: var(--wb-acid); }
 
 .wb-keyboard-sheet {
   position: fixed;
   z-index: 1090;
-  left: 8px;
-  right: 8px;
-  bottom: calc(70px + env(safe-area-inset-bottom));
-  padding: 8px;
+  left: 50%;
+  right: auto;
+  bottom: calc(51px + env(safe-area-inset-bottom));
+  width: min(720px, calc(100vw - 10px));
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  padding: 5px;
   border: 1px solid var(--wb-line);
   border-radius: 13px;
   background: rgba(15,17,14,.97);
   box-shadow: 0 -18px 55px rgba(0,0,0,.45);
 }
 .wb-keyboard-sheet[hidden] { display: none; }
-.wb-key-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
-.wb-key { min-height: 43px; border: 1px solid var(--wb-line); border-radius: 7px; color: var(--wb-text); background: var(--wb-panel-2); font: 700 12px ui-monospace, monospace; touch-action: manipulation; }
+.wb-key-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+.wb-key { min-height: 34px; border: 1px solid var(--wb-line); border-radius: 6px; color: var(--wb-text); background: var(--wb-panel-2); font: 700 11px ui-monospace, monospace; touch-action: manipulation; padding: 2px; }
 .wb-key:active, .wb-key.active { color: #111; background: var(--wb-acid); }
 .wb-key.wide { grid-column: span 2; }
 .wb-key.space { grid-column: span 4; }
 .wb-native-input { position: fixed; width: 1px; height: 1px; left: -20px; bottom: 0; opacity: .01; }
 
 @media (pointer: coarse), (max-width: 760px) {
-  body { padding: 66px 8px 92px !important; }
+  body { padding: 62px 6px 58px !important; }
   #winebox-runtime-bar { height: 54px; padding: 0 8px; }
   .wb-runtime-brand span, .wb-runtime-actions .desktop-only { display: none; }
   #apps { border-radius: 9px; }
   .approw .applbl { display: none; }
   #toolbar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 5px; }
   #toolbar button { flex: 0 0 auto; }
-  div.emscripten_border { width: 100% !important; border-radius: 7px; }
+  html[data-wb-display-size="fit"] div.emscripten_border { width: min(100%, calc(var(--wb-canvas-width, 800) * 1px)) !important; border-radius: 7px; }
   #winebox-mobile-ui { display: block; }
   #console { display: none; }
   .appshint { display: none; }
@@ -248,4 +283,5 @@ body.wb-console-hidden #console, body.wb-console-hidden > .hint { display: none;
 @media (max-width: 430px) {
   .appbtn { min-height: 36px; font-size: 12px !important; padding: 7px 9px !important; }
   .wb-key-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .wb-key { min-height: 31px; font-size: 10px; }
 }

@@ -21,6 +21,36 @@ launcher = launcher_path.read_text(encoding="utf-8")
 launcher = launcher.replace('liveModule["ENV"]["BW64_GLTRACE"] = (param("gltrace") || "1")',
                             'liveModule["ENV"]["BW64_GLTRACE"] = (param("gltrace") || "0")')
 
+module_marker = 'liveModule = (typeof Module !== "undefined") ? Module : window.Module;\n'
+module_bridge = r'''
+                window.wineboxNativeMouseMove = function (x, y, dx, dy, buttons) {
+                    if (!liveModule || typeof liveModule.ccall !== "function") return false;
+                    try {
+                        liveModule.ccall("bw64_mobile_mouse_move", null,
+                            ["number", "number", "number", "number", "number"],
+                            [x, y, dx, dy, buttons]);
+                        return true;
+                    } catch (error) {
+                        console.warn("Native mouse move bridge failed", error);
+                        return false;
+                    }
+                };
+                window.wineboxNativeMouseButton = function (down, button, x, y) {
+                    if (!liveModule || typeof liveModule.ccall !== "function") return false;
+                    try {
+                        liveModule.ccall("bw64_mobile_mouse_button", null,
+                            ["number", "number", "number", "number"],
+                            [down ? 1 : 0, button, x, y]);
+                        return true;
+                    } catch (error) {
+                        console.warn("Native mouse button bridge failed", error);
+                        return false;
+                    }
+                };
+'''
+if "window.wineboxNativeMouseMove" not in launcher:
+    launcher = launcher.replace(module_marker, module_marker + module_bridge)
+
 upload_marker = "    window.uploadAndRunExe = uploadAndRunExe;\n"
 upload_code = r'''
 

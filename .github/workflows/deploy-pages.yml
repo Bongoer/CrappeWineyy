@@ -30,6 +30,11 @@ jobs:
           ref: dee2ff3f08d9b5bdfe78c15bdefbf8f89b4f1639
           path: boxedwine64
 
+      - name: Add native mobile input bridge
+        run: |
+          cp winebox-site/runtime-overrides/winebox-mobile-input.cpp \
+            boxedwine64/source/sdl/emscripten/winebox-mobile-input.cpp
+
       - name: Set up Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
