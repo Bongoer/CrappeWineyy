@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#171914" />
+    <meta name="description" content="Run 64-bit Windows applications in your browser with Wine64 and WebAssembly." />
+    <title>WineBox Web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="WineBox Web home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>WineBox</span>
+        <span class="brand-suffix">WEB</span>
+      </a>
+      <div class="top-status"><span class="status-dot"></span><span id="header-status">Checking browser</span></div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">WINE64 / WASM MEMORY64</p>
+          <h1>Windows apps.<br /><span>No Windows.</span></h1>
+          <p class="lede">A real 64-bit Wine environment that runs locally inside your browser tab. Pick an app, or bring your own EXE.</p>
+
+          <div class="actions">
+            <button class="button button-primary" data-launch="notepad.exe">
+              <span>Launch Notepad</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+            <button class="button button-secondary" data-launch="">
+              <span>Run your EXE</span>
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
+
+          <div class="boot-note">
+            <span class="boot-icon" aria-hidden="true">↓</span>
+            <p><strong>First boot downloads about 55 MB.</strong><br />The full environment is streamed only when needed.</p>
+          </div>
+        </div>
+
+        <div class="machine-card" aria-label="Browser compatibility">
+          <div class="machine-top">
+            <span>RUNTIME CHECK</span>
+            <span class="machine-id">WB-64</span>
+          </div>
+          <div class="screen">
+            <div class="screen-glow"></div>
+            <div class="screen-content">
+              <div class="terminal-line"><span class="prompt">$</span> wine64 --version</div>
+              <div class="terminal-result">wine-8.0 (Debian)</div>
+              <div class="terminal-line spacer"><span class="prompt">$</span> check-browser</div>
+              <ul class="checks" id="checks">
+                <li data-check="wasm"><span>WebAssembly</span><b>...</b></li>
+                <li data-check="memory"><span>Memory64</span><b>...</b></li>
+                <li data-check="threads"><span>Shared memory</span><b>...</b></li>
+                <li data-check="isolation"><span>Secure isolation</span><b>...</b></li>
+              </ul>
+              <div class="cursor-line"><span class="prompt">$</span><span class="cursor"></span></div>
+            </div>
+          </div>
+          <div class="machine-foot">
+            <div><span class="tiny-label">ENGINE</span><strong>Boxedwine64</strong></div>
+            <div><span class="tiny-label">MODE</span><strong>Client-side</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="launcher-section" aria-labelledby="apps-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">QUICK LAUNCH</p>
+            <h2 id="apps-heading">Start with something familiar</h2>
+          </div>
+          <p>Each app opens inside the same Wine session, so the second launch is faster.</p>
+        </div>
+
+        <div class="app-grid">
+          <button class="app-card" data-launch="notepad.exe">
+            <span class="app-icon icon-notepad">N</span>
+            <span class="app-info"><strong>Notepad</strong><small>Text editor</small></span>
+            <span class="card-arrow">↗</span>
+          </button>
+          <button class="app-card" data-launch="winecfg.exe">
+            <span class="app-icon icon-settings">⚙</span>
+            <span class="app-info"><strong>Wine Config</strong><small>Runtime settings</small></span>
+            <span class="card-arrow">↗</span>
+          </button>
+          <button class="app-card" data-launch="explorer.exe">
+            <span class="app-icon icon-files">F</span>
+            <span class="app-info"><strong>Explorer</strong><small>Browse the C: drive</small></span>
+            <span class="card-arrow">↗</span>
+          </button>
+          <button class="app-card" data-launch="glcube.exe">
+            <span class="app-icon icon-cube">◇</span>
+            <span class="app-info"><strong>OpenGL Cube</strong><small>WebGL2 test</small></span>
+            <span class="card-arrow">↗</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="facts">
+        <article><span>01</span><h3>Actually 64-bit</h3><p>Wine64 runs x86-64 Windows programs through a WebAssembly Memory64 build.</p></article>
+        <article><span>02</span><h3>Private by default</h3><p>Programs execute on your device. The site doesn't upload your EXE to a server.</p></article>
+        <article><span>03</span><h3>Experimental</h3><p>Simple apps work best. Newer .NET apps, drivers, and anti-cheat software won't work yet.</p></article>
+      </section>
+    </main>
+
+    <footer>
+      <span>WineBox Web</span>
+      <span>Powered by the GPL-2.0 Boxedwine64 project</span>
+      <a href="https://github.com/andrewnakas/Boxedwine64" target="_blank" rel="noreferrer">Source ↗</a>
+    </footer>
+
+    <dialog id="compat-dialog">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="Close">×</button>
+        <p class="eyebrow">BROWSER CHECK</p>
+        <h2 id="dialog-title">This browser needs a small upgrade</h2>
+        <p id="dialog-copy">Wine64 needs a modern browser with WebAssembly Memory64 and shared memory support.</p>
+        <div class="dialog-actions">
+          <button class="button button-primary" id="continue-anyway" value="continue">Try anyway</button>
+          <button class="button button-secondary" value="cancel">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

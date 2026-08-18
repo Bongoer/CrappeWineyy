@@ -1,0 +1,106 @@
+name: Build WineBox Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout WineBox site
+        uses: actions/checkout@v4
+        with:
+          path: winebox-site
+
+      - name: Checkout the Boxedwine64 engine
+        uses: actions/checkout@v4
+        with:
+          repository: andrewnakas/Boxedwine64
+          ref: dee2ff3f08d9b5bdfe78c15bdefbf8f89b4f1639
+          path: boxedwine64
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 6.0.0
+          actions-cache-folder: emsdk-cache
+
+      - name: Build 64-bit WebAssembly runtime
+        working-directory: boxedwine64/project/emscripten
+        run: make wasm64-mt
+
+      - name: Download the Wine64 filesystem
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          out="boxedwine64/project/emscripten/Build/Wasm64Mt"
+          gh release download rootfs-pages \
+            --repo andrewnakas/Boxedwine64 \
+            --dir "$out" \
+            --pattern '*.zip' \
+            --pattern '*.zip.part*' \
+            --pattern '*.manifest.json' \
+            --clobber
+
+      - name: Verify filesystem files
+        run: |
+          set -euo pipefail
+          cd boxedwine64/project/emscripten/Build/Wasm64Mt
+          python3 - <<'PY'
+          import glob, json, os, sys
+          failed = False
+          for manifest_path in sorted(glob.glob('*.manifest.json')):
+              manifest = json.load(open(manifest_path))
+              parts = manifest.get('parts') or [manifest['name']]
+              actual = sum(os.path.getsize(part) for part in parts)
+              expected = int(manifest['totalBytes'])
+              print(f"{manifest['name']}: {actual} / {expected} bytes")
+              failed |= actual != expected
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: Assemble GitHub Pages site
+        run: |
+          set -euo pipefail
+          runtime="boxedwine64/project/emscripten/Build/Wasm64Mt"
+          site="_site"
+          mkdir -p "$site/runtime"
+          cp -R winebox-site/site/. "$site/"
+          cp "$runtime/wine64.html" "$site/runtime/"
+          cp "$runtime/wine64-launcher.js" "$site/runtime/"
+          cp "$runtime/coi-serviceworker.js" "$site/runtime/"
+          cp "$runtime/boxedwine64.js" "$site/runtime/"
+          cp "$runtime/boxedwine64.wasm" "$site/runtime/"
+          cp "$runtime/boxedwine.css" "$site/runtime/" 2>/dev/null || true
+          cp "$runtime"/*.zip "$site/runtime/" 2>/dev/null || true
+          cp "$runtime"/*.zip.part* "$site/runtime/" 2>/dev/null || true
+          cp "$runtime"/*.manifest.json "$site/runtime/"
+          touch "$site/.nojekyll"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
