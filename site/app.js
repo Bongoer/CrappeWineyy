@@ -33,6 +33,7 @@ function runtimeUrl(program) {
   const url = new URL("./runtime/wine64.html", window.location.href);
   url.searchParams.set("chunked", "1");
   url.searchParams.set("lazy", "1");
+  url.searchParams.set("gltrace", "0");
   if (program) url.searchParams.set("p", program);
   return url.href;
 }

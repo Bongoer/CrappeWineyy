@@ -27,6 +27,7 @@ body {
 
 button, a { font: inherit; }
 button { color: inherit; }
+.icon { width: 19px; height: 19px; display: block; }
 
 .topbar {
   height: 76px;
@@ -98,15 +99,19 @@ main { width: min(1320px, 90vw); margin: 0 auto; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 40px; margin-bottom: 36px; }
 .section-heading h2 { margin: 0; font-size: clamp(34px, 4vw, 62px); letter-spacing: -.055em; line-height: 1; }
 .section-heading > p { max-width: 360px; color: var(--muted); line-height: 1.6; font-size: 14px; }
-.app-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+.app-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
 .app-card { border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); min-height: 190px; padding: 22px; background: rgba(242,240,232,.55); cursor: pointer; display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 14px; text-align: left; transition: background .2s ease; }
 .app-card:hover { background: white; }
 .app-card:hover .card-arrow { transform: translate(3px, -3px); }
-.app-icon { align-self: start; grid-column: 1 / -1; width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--ink); font-family: "DM Mono", monospace; font-size: 20px; box-shadow: 4px 4px 0 var(--ink); }
+.app-icon { align-self: start; grid-column: 1 / -1; width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+.app-icon .icon { width: 24px; height: 24px; }
 .icon-notepad { background: var(--blue); }
 .icon-settings { background: var(--acid); }
 .icon-files { background: #f7c54a; }
 .icon-cube { background: var(--orange); }
+.icon-desktop { background: #b7a3ff; }
+.icon-doom { background: #ff805c; }
+.icon-python { background: #70c7e8; }
 .app-info { display: flex; flex-direction: column; gap: 5px; }
 .app-info strong { font-size: 15px; }
 .app-info small { color: var(--muted); }
@@ -120,14 +125,15 @@ main { width: min(1320px, 90vw); margin: 0 auto; }
 
 footer { min-height: 82px; padding: 22px 5vw; background: var(--ink); color: #c7cabf; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 20px; font-size: 11px; font-family: "DM Mono", monospace; }
 footer span:nth-child(2) { text-align: center; }
-footer a { color: var(--acid); justify-self: end; }
+footer a { color: var(--acid); justify-self: end; display: inline-flex; align-items: center; gap: 7px; }
+footer a .icon { width: 14px; height: 14px; }
 
 dialog { width: min(520px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 10px 10px 0 var(--ink); }
 dialog::backdrop { background: rgba(23,25,20,.62); backdrop-filter: blur(4px); }
 dialog form { padding: 34px; position: relative; }
 dialog h2 { font-size: 30px; letter-spacing: -.045em; margin: 0 0 14px; }
 dialog p:not(.eyebrow) { color: var(--muted); line-height: 1.6; }
-.dialog-close { position: absolute; top: 12px; right: 14px; border: 0; background: transparent; font-size: 28px; cursor: pointer; }
+.dialog-close { position: absolute; top: 12px; right: 14px; border: 0; background: transparent; cursor: pointer; padding: 8px; }
 .dialog-actions { display: flex; gap: 10px; margin-top: 28px; }
 
 @media (max-width: 900px) {

@@ -19,6 +19,12 @@ The first build compiles the browser engine, so it can take several minutes. Lat
 - Safari support is experimental.
 - The first launch streams about 55 MB. The complete filesystem is about 196 MB.
 - Simple native apps work best. Kernel drivers, anti-cheat, and many recent .NET apps won't work.
+- Basic MSI installers are supported through Wine's `msiexec`, but installers that require services, drivers, or recent .NET versions may fail.
+- Portable Python 3.12 is included at `C:\Python312`. Upload a `.py` file to run it.
+- Multi-file upload accepts EXE, MSI, PY, DLL, and PYD companion files.
+- Mobile controls include Standard, Gaming, and Compact keyboard layouts, a touch trackpad, visible cursor, mouse buttons, and pointer-speed settings.
+- Wine and Boxedwine provide the browser-facing display, audio, keyboard, mouse, and network compatibility layers. Separate Windows kernel, USB, anti-cheat, and hardware drivers cannot be installed because there is no Windows kernel or direct hardware access.
+- The Desktop button starts Wine Explorer's desktop shell. XFCE is not included because Boxedwine64 is a Wine userspace environment, not a complete Linux virtual machine.
 
 ## Why this doesn't use v86
 

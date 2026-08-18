@@ -31,16 +31,16 @@
           <div class="actions">
             <button class="button button-primary" data-launch="notepad.exe">
               <span>Launch Notepad</span>
-              <span aria-hidden="true">↗</span>
+              <span data-icon="play"></span>
             </button>
-            <button class="button button-secondary" data-launch="">
-              <span>Run your EXE</span>
-              <span aria-hidden="true">+</span>
+            <button class="button button-secondary" data-launch="notepad.exe">
+              <span>Open app launcher</span>
+              <span data-icon="monitor"></span>
             </button>
           </div>
 
           <div class="boot-note">
-            <span class="boot-icon" aria-hidden="true">↓</span>
+            <span class="boot-icon" data-icon="download"></span>
             <p><strong>First boot downloads about 55 MB.</strong><br />The full environment is streamed only when needed.</p>
           </div>
         </div>
@@ -83,24 +83,39 @@
 
         <div class="app-grid">
           <button class="app-card" data-launch="notepad.exe">
-            <span class="app-icon icon-notepad">N</span>
+            <span class="app-icon icon-notepad" data-icon="file-text"></span>
             <span class="app-info"><strong>Notepad</strong><small>Text editor</small></span>
-            <span class="card-arrow">↗</span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
           </button>
           <button class="app-card" data-launch="winecfg.exe">
-            <span class="app-icon icon-settings">⚙</span>
+            <span class="app-icon icon-settings" data-icon="settings"></span>
             <span class="app-info"><strong>Wine Config</strong><small>Runtime settings</small></span>
-            <span class="card-arrow">↗</span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
           </button>
           <button class="app-card" data-launch="explorer.exe">
-            <span class="app-icon icon-files">F</span>
+            <span class="app-icon icon-files" data-icon="folder-open"></span>
             <span class="app-info"><strong>Explorer</strong><small>Browse the C: drive</small></span>
-            <span class="card-arrow">↗</span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
           </button>
           <button class="app-card" data-launch="glcube.exe">
-            <span class="app-icon icon-cube">◇</span>
+            <span class="app-icon icon-cube" data-icon="box"></span>
             <span class="app-info"><strong>OpenGL Cube</strong><small>WebGL2 test</small></span>
-            <span class="card-arrow">↗</span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
+          </button>
+          <button class="app-card" data-launch="explorer.exe /desktop=WineBox,800x600">
+            <span class="app-icon icon-desktop" data-icon="desktop"></span>
+            <span class="app-info"><strong>Wine Desktop</strong><small>Explorer desktop shell</small></span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
+          </button>
+          <button class="app-card" data-launch="doom.exe -iwad Z:\home\username\doom1.wad -nosound">
+            <span class="app-icon icon-doom" data-icon="gamepad"></span>
+            <span class="app-info"><strong>DOOM Fast</strong><small>Reduced audio overhead</small></span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
+          </button>
+          <button class="app-card" data-launch="C:\Python312\python.exe --version">
+            <span class="app-icon icon-python" data-icon="binary"></span>
+            <span class="app-info"><strong>Python 3.12</strong><small>Portable Windows Python</small></span>
+            <span class="card-arrow" data-icon="arrow-up-right"></span>
           </button>
         </div>
       </section>
@@ -108,19 +123,19 @@
       <section class="facts">
         <article><span>01</span><h3>Actually 64-bit</h3><p>Wine64 runs x86-64 Windows programs through a WebAssembly Memory64 build.</p></article>
         <article><span>02</span><h3>Private by default</h3><p>Programs execute on your device. The site doesn't upload your EXE to a server.</p></article>
-        <article><span>03</span><h3>Experimental</h3><p>Simple apps work best. Newer .NET apps, drivers, and anti-cheat software won't work yet.</p></article>
+        <article><span>03</span><h3>More file types</h3><p>Upload portable EXE packages, basic MSI installers, Python scripts, DLLs, and PYD companion files.</p></article>
       </section>
     </main>
 
     <footer>
       <span>WineBox Web</span>
       <span>Powered by the GPL-2.0 Boxedwine64 project</span>
-      <a href="https://github.com/andrewnakas/Boxedwine64" target="_blank" rel="noreferrer">Source ↗</a>
+      <a href="https://github.com/andrewnakas/Boxedwine64" target="_blank" rel="noreferrer">Source <span data-icon="external-link"></span></a>
     </footer>
 
     <dialog id="compat-dialog">
       <form method="dialog">
-        <button class="dialog-close" aria-label="Close">×</button>
+        <button class="dialog-close" aria-label="Close"><span data-icon="x"></span></button>
         <p class="eyebrow">BROWSER CHECK</p>
         <h2 id="dialog-title">This browser needs a small upgrade</h2>
         <p id="dialog-copy">Wine64 needs a modern browser with WebAssembly Memory64 and shared memory support.</p>
@@ -131,6 +146,7 @@
       </form>
     </dialog>
 
+    <script src="./icons.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

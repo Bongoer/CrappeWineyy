@@ -71,6 +71,23 @@ jobs:
           sys.exit(1 if failed else 0)
           PY
 
+      - name: Add portable Python 3.12
+        run: |
+          set -euo pipefail
+          runtime="$GITHUB_WORKSPACE/boxedwine64/project/emscripten/Build/Wasm64Mt"
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          curl -fL --retry 3 \
+            https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip \
+            -o "$stage/python-embed.zip"
+          mkdir -p "$stage/prefix" "$stage/python"
+          unzip -q "$runtime/prefix64.zip" -d "$stage/prefix"
+          unzip -q "$stage/python-embed.zip" -d "$stage/python"
+          mkdir -p "$stage/prefix/home/username/.wine/drive_c/Python312"
+          cp -R "$stage/python/." "$stage/prefix/home/username/.wine/drive_c/Python312/"
+          rm -f "$runtime/prefix64.zip"
+          (cd "$stage/prefix" && zip -qry9 "$runtime/prefix64.zip" .)
+
       - name: Assemble GitHub Pages site
         run: |
           set -euo pipefail
@@ -87,6 +104,11 @@ jobs:
           cp "$runtime"/*.zip "$site/runtime/" 2>/dev/null || true
           cp "$runtime"/*.zip.part* "$site/runtime/" 2>/dev/null || true
           cp "$runtime"/*.manifest.json "$site/runtime/"
+          cp winebox-site/site/icons.js "$site/runtime/winebox-icons.js"
+          cp winebox-site/runtime-overrides/winebox-runtime.css "$site/runtime/"
+          cp winebox-site/runtime-overrides/winebox-runtime.js "$site/runtime/"
+          cp winebox-site/runtime-overrides/winebox-cursor.svg "$site/runtime/"
+          python3 winebox-site/runtime-overrides/patch-runtime.py "$site/runtime"
           touch "$site/.nojekyll"
 
       - name: Upload Pages artifact
