@@ -34,7 +34,7 @@ launcher = replace_required(
     '    var DO_BOOT, NOVIDEO, PROG, USE_PREFIX, SESSION;\n',
     '''    var DO_BOOT, NOVIDEO, PROG, USE_PREFIX, SESSION;
     var REQUESTED_PROG = param("p");
-    var DESKTOP_PROG = "explorer.exe /desktop=WineBox,960x540";
+    var DESKTOP_PROG = "explorer.exe /desktop=WineBox,800x450";
     var USE_DESKTOP_SHELL = param("desktop") !== "0" && param("boot") !== "1" && param("novideo") !== "1";
     var pendingDesktopProgram = USE_DESKTOP_SHELL && REQUESTED_PROG && REQUESTED_PROG !== DESKTOP_PROG
         ? REQUESTED_PROG : null;
@@ -50,7 +50,7 @@ launcher = replace_required(
 launcher = replace_required(
     launcher,
     '            canvas.width = 800;\n            canvas.height = 600;\n',
-    '            canvas.width = 960;\n            canvas.height = 540;\n',
+    '            canvas.width = 800;\n            canvas.height = 450;\n',
     "landscape canvas size",
 )
 

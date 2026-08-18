@@ -2,8 +2,8 @@
   "use strict";
 
   const I = window.WineboxIcons;
-  const DESKTOP_WIDTH = 960;
-  const DESKTOP_HEIGHT = 540;
+  const DESKTOP_WIDTH = 800;
+  const DESKTOP_HEIGHT = 450;
   const DESKTOP_PROGRAM = `explorer.exe /desktop=WineBox,${DESKTOP_WIDTH}x${DESKTOP_HEIGHT}`;
   const qs = new URLSearchParams(location.search);
   const storage = {
@@ -13,7 +13,7 @@
   const state = {
     layout: storage.get("wbKeyboard", "gaming"),
     pointerSpeed: Number(storage.get("wbPointerSpeed", "1.2")),
-    rendering: storage.get("wbRendering", "sharp"),
+    rendering: storage.get("wbRenderingV2", "smooth"),
     displaySize: storage.get("wbDisplaySize", "fit"),
     performance: qs.get("perf") === "1" || storage.get("wbPerformance", "0") === "1",
     keyboardOpen: false,
@@ -22,7 +22,7 @@
     cursorY: null,
     mouseButtons: 0,
   };
-  if (!["smooth", "sharp"].includes(state.rendering)) state.rendering = "sharp";
+  if (!["smooth", "sharp"].includes(state.rendering)) state.rendering = "smooth";
   if (!["fit", "native", "zoom"].includes(state.displaySize)) state.displaySize = "fit";
 
   const icon = (name, cls) => I.icon(name, cls || "wb-icon");
@@ -66,8 +66,102 @@
     document.getElementById("wb-home").onclick = () => location.href = "../";
     document.getElementById("wb-console-toggle").onclick = () => document.body.classList.toggle("wb-console-hidden");
     document.getElementById("wb-fullscreen").onclick = () => {
-      const target = document.querySelector("div.emscripten_border") || document.getElementById("dropzone");
+      const target = document.querySelector(".wb-desktop-shell") || document.querySelector("div.emscripten_border") || document.getElementById("dropzone");
       if (!document.fullscreenElement) target?.requestFullscreen?.(); else document.exitFullscreen?.();
+    };
+  }
+
+  function friendlyProgramName(program) {
+    const value = program || DESKTOP_PROGRAM;
+    if (/notepad/i.test(value)) return "Notepad";
+    if (/wordpad/i.test(value)) return "WordPad";
+    if (/winefile|explorer\.exe(?!.*desktop)/i.test(value)) return "File Manager";
+    if (/winemine/i.test(value)) return "Minesweeper";
+    if (/doom/i.test(value)) return "DOOM";
+    if (/winecfg/i.test(value)) return "Wine Settings";
+    if (/python/i.test(value)) return "Python";
+    if (/desktop/i.test(value)) return "WineBox Desktop";
+    return value.split(/[\\/]/).pop().split(/\s+/)[0] || "Wine application";
+  }
+
+  function addDesktopEnvironment() {
+    const dropzone = document.getElementById("dropzone");
+    const border = document.querySelector("div.emscripten_border");
+    if (!dropzone || !border) return;
+
+    const shell = document.createElement("section");
+    shell.className = "wb-desktop-shell";
+    shell.innerHTML = `
+      <div class="wb-desktop-panel">
+        <button type="button" class="wb-panel-button" id="wb-panel-apps">${icon("monitor")}<span>Applications</span></button>
+        <div class="wb-panel-task">${icon("desktop")}<span id="wb-panel-task-name">WineBox Desktop</span></div>
+        <span class="wb-panel-workspace">Workspace 1</span>
+        <time id="wb-panel-clock"></time>
+      </div>
+      <div class="wb-desktop-surface">
+        <div class="wb-desktop-shortcuts" aria-label="Desktop shortcuts">
+          <button type="button" data-wb-shortcut="notepad.exe">${icon("file-text")}<span>Notepad</span></button>
+          <button type="button" data-wb-shortcut="winefile.exe">${icon("folder-open")}<span>Files</span></button>
+          <button type="button" data-wb-shortcut="winemine.exe">${icon("bomb")}<span>Mines</span></button>
+        </div>
+        <div class="wb-guest-window" id="wb-guest-window">
+          <div class="wb-guest-titlebar">
+            <span class="wb-guest-title">${icon("monitor")}<span id="wb-guest-title-text">WineBox Desktop</span></span>
+            <span class="wb-window-buttons">
+              <button type="button" id="wb-window-minimize" aria-label="Minimize window">-</button>
+              <button type="button" id="wb-window-maximize" aria-label="Maximize window">□</button>
+            </span>
+          </div>
+          <div class="wb-guest-content"></div>
+        </div>
+        <div class="wb-desktop-menu" id="wb-desktop-menu" hidden></div>
+      </div>`;
+    dropzone.replaceChildren(shell);
+    shell.querySelector(".wb-guest-content").appendChild(border);
+
+    const menu = shell.querySelector("#wb-desktop-menu");
+    document.querySelectorAll("#apps .appbtn").forEach((source) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.dataset.program = source.dataset.prog || "";
+      item.innerHTML = `${icon(appIcon(source.dataset.prog))}<span>${source.textContent.trim()}</span>`;
+      item.onclick = () => {
+        launch(item.dataset.program);
+        menu.hidden = true;
+        document.getElementById("wb-panel-apps")?.classList.remove("active");
+      };
+      menu.appendChild(item);
+    });
+
+    const appsButton = shell.querySelector("#wb-panel-apps");
+    appsButton.onclick = () => {
+      menu.hidden = !menu.hidden;
+      appsButton.classList.toggle("active", !menu.hidden);
+    };
+    shell.querySelectorAll("[data-wb-shortcut]").forEach((button) => {
+      button.onclick = () => launch(button.dataset.wbShortcut);
+    });
+
+    const guestWindow = shell.querySelector("#wb-guest-window");
+    shell.querySelector("#wb-window-minimize").onclick = () => guestWindow.classList.toggle("minimized");
+    shell.querySelector("#wb-window-maximize").onclick = () => guestWindow.classList.toggle("maximized");
+
+    function updateClock() {
+      const clock = document.getElementById("wb-panel-clock");
+      if (clock) clock.textContent = new Intl.DateTimeFormat([], { hour: "2-digit", minute: "2-digit" }).format(new Date());
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    const previousSetActiveApp = window.setActiveApp;
+    window.setActiveApp = function (program) {
+      previousSetActiveApp?.(program);
+      const name = friendlyProgramName(program);
+      const panelName = document.getElementById("wb-panel-task-name");
+      const titleName = document.getElementById("wb-guest-title-text");
+      if (panelName) panelName.textContent = name;
+      if (titleName) titleName.textContent = name;
+      guestWindow.classList.remove("minimized");
     };
   }
 
@@ -412,7 +506,7 @@
       state.pointerSpeed = Number(document.getElementById("wb-pointer-speed").value);
       const newPerf = document.getElementById("wb-performance").checked;
       storage.set("wbKeyboard", state.layout);
-      storage.set("wbRendering", state.rendering);
+      storage.set("wbRenderingV2", state.rendering);
       storage.set("wbDisplaySize", state.displaySize);
       storage.set("wbPointerSpeed", state.pointerSpeed);
       storage.set("wbPerformance", newPerf ? "1" : "0");
@@ -436,6 +530,7 @@
     applyCanvasDisplay();
     addRuntimeBar();
     replaceIconsAndAddApps();
+    addDesktopEnvironment();
     addSettings();
     addMobileUi();
     installCursorAndTrackpad();

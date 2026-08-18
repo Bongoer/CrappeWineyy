@@ -24,10 +24,11 @@ The first build compiles the browser engine, so it can take several minutes. Lat
 - Multi-file upload accepts EXE, MSI, PY, DLL, and PYD companion files.
 - Mobile controls include Standard, Gaming, and Compact keyboard layouts, a touch trackpad, visible cursor, mouse buttons, and pointer-speed settings.
 - Mobile pointer movement is sent through a native SDL/XWire bridge instead of moving only a browser overlay.
-- The runtime always starts a 960x540 Wine Explorer desktop. Apps open as normal windows inside it instead of taking ownership of the browser framebuffer.
+- The runtime starts an 800x450 Wine desktop inside a visible XFCE-style host shell. The lower guest resolution makes menus and text larger while keeping the screen landscape.
+- Boxedwine64's incomplete 5x7 fallback font is replaced at build time with Daniel Hepper's public-domain IBM VGA 8x8 font, preserving lowercase letters and punctuation.
 - The runtime page is locked to the browser viewport. Its landscape desktop uses contain sizing in normal and fullscreen modes, so it cannot turn into an oversized portrait page.
 - Wine and Boxedwine provide the browser-facing display, audio, keyboard, mouse, and network compatibility layers. Separate Windows kernel, USB, anti-cheat, and hardware drivers cannot be installed because there is no Windows kernel or direct hardware access.
-- Wine Explorer provides the compatible desktop shell. XFCE and Openbox are Linux window managers and cannot run here because Boxedwine64 is a Wine userspace environment, not a complete Linux virtual machine.
+- The visible panel, launcher, shortcuts, task button, clock, and window frame are a lightweight XFCE-style browser shell. A real XFCE or Openbox process cannot run because Boxedwine64 exposes a Wine userspace display rather than a complete Linux virtual machine and X server.
 
 ## Why this doesn't use v86
 
@@ -42,3 +43,7 @@ The workflow pins a tested Boxedwine64 commit. To update it, replace the `ref` v
 The launcher files in this folder may be reused freely. The downloaded and compiled Boxedwine64 runtime is GPL-2.0. See the upstream project for its source and license:
 
 https://github.com/andrewnakas/Boxedwine64
+
+The core bitmap font is derived from Daniel Hepper's public-domain `font8x8` collection:
+
+https://github.com/dhepper/font8x8

@@ -30,8 +30,9 @@ jobs:
           ref: dee2ff3f08d9b5bdfe78c15bdefbf8f89b4f1639
           path: boxedwine64
 
-      - name: Add native mobile input bridge
+      - name: Add readable fonts and native mobile input
         run: |
+          python3 winebox-site/runtime-overrides/patch-engine.py boxedwine64
           cp winebox-site/runtime-overrides/winebox-mobile-input.cpp \
             boxedwine64/source/sdl/emscripten/winebox-mobile-input.cpp
 
@@ -51,6 +52,8 @@ jobs:
           runtime="boxedwine64/project/emscripten/Build/Wasm64Mt"
           grep -a -q "bw64_mobile_mouse_move" "$runtime/boxedwine64.js" "$runtime/boxedwine64.wasm"
           grep -a -q "bw64_mobile_mouse_button" "$runtime/boxedwine64.js" "$runtime/boxedwine64.wasm"
+          grep -Fq 'font8x8_basic' boxedwine64/source/x11wire/xwirefont.h
+          grep -Fq 'xwirefont::FONT_ASCENT' boxedwine64/source/x11wire/xwireconnection.cpp
 
       - name: Download the Wine64 filesystem
         env:
@@ -129,10 +132,11 @@ jobs:
           node --check _site/app.js
           node --check _site/runtime/winebox-runtime.js
           node --check _site/runtime/wine64-launcher.js
-          grep -Fq 'explorer.exe /desktop=WineBox,960x540' _site/runtime/wine64-launcher.js
+          grep -Fq 'explorer.exe /desktop=WineBox,800x450' _site/runtime/wine64-launcher.js
           grep -Fq 'spawnInsideDesktop' _site/runtime/wine64-launcher.js
-          grep -Fq 'canvas.width = 960' _site/runtime/wine64-launcher.js
-          grep -Fq 'canvas.height = 540' _site/runtime/wine64-launcher.js
+          grep -Fq 'canvas.width = 800' _site/runtime/wine64-launcher.js
+          grep -Fq 'canvas.height = 450' _site/runtime/wine64-launcher.js
+          grep -Fq 'wb-desktop-shell' _site/runtime/winebox-runtime.js
           grep -Fq 'overflow: hidden !important' _site/runtime/winebox-runtime.css
 
       - name: Upload Pages artifact
